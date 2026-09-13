@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.router import router as auth_router
+from app.auth.service import seed_bootstrap_admin
 from app.config import settings
 from app.db.database import init_db
-from app.auth.router import router as auth_router
 from app.files.router import router as files_router
 
 try:
@@ -17,7 +18,11 @@ except Exception:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Refuse to start with an insecure secret (fail fast, not at import time).
+    settings.validate_security()
     await init_db()
+    # First-run only: create the one-time admin invite and log it once.
+    await seed_bootstrap_admin()
     yield
 
 

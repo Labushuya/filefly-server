@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from typing import Optional
 
-from app.auth.service import decode_token
 from app.auth.models import TokenData
+from app.auth.service import decode_token
 from app.files import service
 
 router = APIRouter(prefix="/files", tags=["files"])

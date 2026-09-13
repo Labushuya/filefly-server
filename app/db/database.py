@@ -1,5 +1,6 @@
-import aiosqlite
 import os
+
+import aiosqlite
 
 DB_PATH = os.environ.get("DB_PATH", "filefly.db")
 
@@ -12,9 +13,12 @@ async def get_db() -> aiosqlite.Connection:
 
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
+        # Invites: the plaintext code is NEVER stored. `id` (uuid) is the stable
+        # identifier and the JWT subject; `code_hash` (SHA-256) is what we look up.
         await db.execute("""
             CREATE TABLE IF NOT EXISTS invites (
-                code TEXT PRIMARY KEY,
+                id TEXT PRIMARY KEY,
+                code_hash TEXT NOT NULL UNIQUE,
                 role TEXT NOT NULL,
                 base_path TEXT NOT NULL DEFAULT '',
                 permissions TEXT NOT NULL DEFAULT '[]',
@@ -24,6 +28,8 @@ async def init_db():
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
         """)
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_invites_code_hash ON invites (code_hash)")
+        # Upload sessions are scoped by owner_code = the invite id (JWT sub).
         await db.execute("""
             CREATE TABLE IF NOT EXISTS upload_sessions (
                 upload_id TEXT PRIMARY KEY,

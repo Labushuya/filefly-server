@@ -1,15 +1,13 @@
 import json
-import os
 import shutil
 import uuid
 from pathlib import Path
-from typing import Optional
 
 import aiofiles
 from fastapi import HTTPException
 
-from app.config import settings
 from app.auth.models import TokenData
+from app.config import settings
 from app.db.database import get_db
 
 
@@ -42,12 +40,14 @@ async def list_directory(path: str, token: TokenData) -> list[dict]:
 
     entries = []
     for entry in sorted(target.iterdir()):
-        entries.append({
-            "name": entry.name,
-            "is_dir": entry.is_dir(),
-            "size": entry.stat().st_size if entry.is_file() else 0,
-            "modified": entry.stat().st_mtime,
-        })
+        entries.append(
+            {
+                "name": entry.name,
+                "is_dir": entry.is_dir(),
+                "size": entry.stat().st_size if entry.is_file() else 0,
+                "modified": entry.stat().st_mtime,
+            }
+        )
     return entries
 
 
@@ -67,9 +67,19 @@ async def init_upload(
     try:
         await db.execute(
             """INSERT INTO upload_sessions
-               (upload_id, filename, target_path, total_size, chunk_count, received_chunks, conflict_strategy, owner_code)
+               (upload_id, filename, target_path, total_size, chunk_count,
+                received_chunks, conflict_strategy, owner_code)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (upload_id, filename, target_path, total_size, chunk_count, "[]", conflict_strategy, token.invite_code),
+            (
+                upload_id,
+                filename,
+                target_path,
+                total_size,
+                chunk_count,
+                "[]",
+                conflict_strategy,
+                token.invite_code,
+            ),
         )
         await db.commit()
     finally:
@@ -158,7 +168,10 @@ async def complete_upload(upload_id: str, token: TokenData) -> dict:
         await db.execute("DELETE FROM upload_sessions WHERE upload_id = ?", (upload_id,))
         await db.commit()
 
-        return {"status": "complete", "path": str(dest_file.relative_to(Path(settings.storage_root)))}
+        return {
+            "status": "complete",
+            "path": str(dest_file.relative_to(Path(settings.storage_root))),
+        }
     finally:
         await db.close()
 

@@ -1,9 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.auth.models import InviteCreate, Invite, TokenResponse
 from app.auth import service
-from app.auth.models import TokenData
+from app.auth.models import (
+    InviteCreate,
+    InviteCreateResponse,
+    InviteSummary,
+    TokenData,
+    TokenResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 bearer = HTTPBearer()
@@ -35,17 +40,18 @@ async def validate_invite(body: dict):
     )
 
 
-@router.post("/invite", response_model=Invite)
+@router.post("/invite", response_model=InviteCreateResponse)
 async def create_invite(data: InviteCreate, _: TokenData = Depends(require_admin)):
+    # The plaintext code + deep-link URL are returned here ONCE and never again.
     return await service.create_invite(data)
 
 
-@router.get("/invites", response_model=list[Invite])
+@router.get("/invites", response_model=list[InviteSummary])
 async def list_invites(_: TokenData = Depends(require_admin)):
     return await service.list_invites()
 
 
-@router.delete("/invite/{code}")
-async def delete_invite(code: str, _: TokenData = Depends(require_admin)):
-    await service.delete_invite(code)
-    return {"deleted": code}
+@router.delete("/invite/{identifier}")
+async def delete_invite(identifier: str, _: TokenData = Depends(require_admin)):
+    await service.delete_invite(identifier)
+    return {"deleted": identifier}

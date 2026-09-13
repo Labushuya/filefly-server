@@ -8,6 +8,9 @@ services:
       - ./filefly.db:/app/filefly.db
     environment:
       - STORAGE_ROOT=/data
-      - SECRET_KEY=change-me
-      - ADMIN_INVITE_CODE=admin-setup
+      # REQUIRED — replace before first start; the server refuses to run with the
+      # default. Generate one with: openssl rand -hex 32
+      - SECRET_KEY=change-me-in-production
     restart: unless-stopped
+    # First start prints a one-time admin invite code to the logs:
+    #   docker compose logs filefly-server
