@@ -16,6 +16,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "pytest-asyncio", "httpx", "ruff"]
 
+# Only `app` is the importable package. Without this, setuptools' flat-layout
+# autodiscovery also picks up sibling dirs (deploy/, docs/, tests/) and fails
+# with "Multiple top-level packages discovered".
+[tool.setuptools]
+packages = ["app"]
+
 [tool.ruff]
 line-length = 100
 
