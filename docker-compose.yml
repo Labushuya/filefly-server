@@ -6,11 +6,16 @@ services:
     volumes:
       - /mnt/data:/data
       - ./filefly.db:/app/filefly.db
+    # Secrets & config come from a local .env file (see .env.example).
+    # .env is git-ignored — the real SECRET_KEY never lands in the repo.
+    # Create it once on the host:  cp .env.example .env  &&  edit SECRET_KEY
+    env_file:
+      - .env
+    # STORAGE_ROOT is fixed to the mounted volume above and not a secret,
+    # so we pin it here rather than relying on .env for it.
     environment:
       - STORAGE_ROOT=/data
-      # REQUIRED — replace before first start; the server refuses to run with the
-      # default. Generate one with: openssl rand -hex 32
-      - SECRET_KEY=change-me-in-production
     restart: unless-stopped
     # First start prints a one-time admin invite code to the logs:
     #   docker compose logs filefly-server
+    # The server refuses to start if SECRET_KEY is missing or still the default.
