@@ -1,0 +1,13 @@
+services:
+  filefly-server:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - /mnt/data:/data
+      - ./filefly.db:/app/filefly.db
+    environment:
+      - STORAGE_ROOT=/data
+      - SECRET_KEY=change-me
+      - ADMIN_INVITE_CODE=admin-setup
+    restart: unless-stopped
