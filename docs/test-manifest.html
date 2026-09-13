@@ -153,7 +153,8 @@
 <div class="summary">
   <strong>Scope:</strong> covers health/version, invite lifecycle, chunked upload, conflict strategies,
   permission &amp; path-traversal enforcement, guest expiry/max-uses, role restrictions, auth failures, and CORS.
-  Run against a freshly started instance with a known <code>ADMIN_INVITE_CODE</code>. Replace <code>$TOKEN</code>
+  Run against a freshly started instance. The one-time admin bootstrap code is printed
+  to the server logs on first start (<code>docker compose logs filefly-server</code>). Replace <code>$TOKEN</code>
   with the JWT returned by the relevant invite.
 </div>
 
@@ -183,23 +184,25 @@ curl -s http://filefly.home/version</pre>
 <section class="block">
   <div class="block-head">
     <span class="gid">G02</span>
-    <p class="block-title">Redeem admin invite → receive JWT</p>
+    <p class="block-title">Redeem one-time bootstrap admin invite → receive JWT</p>
     <select class="status-select" aria-label="G02 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
   </div>
   <div class="block-body">
     <p class="label">Steps</p>
     <ol class="steps">
-      <li>Use the configured <code class="inline">ADMIN_INVITE_CODE</code>.</li>
+      <li>On first start, copy the bootstrap code from the server logs (<code class="inline">docker compose logs filefly-server</code>).</li>
       <li>POST it to the validate endpoint.</li>
+      <li>Then POST the <em>same</em> code a second time.</li>
     </ol>
 <pre>curl -s -X POST http://filefly.home/auth/invite/validate \
   -H "Content-Type: application/json" \
-  -d '{"code":"&lt;ADMIN_INVITE_CODE&gt;"}'</pre>
+  -d '{"code":"&lt;bootstrap code from logs&gt;"}'</pre>
     <p class="label expect">Expect</p>
-    <div class="expect-box">HTTP 200 with a JSON body containing <code class="inline">access_token</code>,
+    <div class="expect-box">First call: HTTP 200 with <code class="inline">access_token</code>,
     <code class="inline">token_type:"bearer"</code>, <code class="inline">role:"admin"</code>, <code class="inline">base_path:""</code>,
     and <code class="inline">permissions</code> = <code class="inline">["upload","mkdir","rename","delete","invite"]</code>.
-    An empty or missing <code class="inline">code</code> returns HTTP 400.</div>
+    <strong>Second call: HTTP 403 "Invite exhausted"</strong> (single use). After 24h an unused code returns HTTP 403 "Invite expired".
+    An empty or missing <code class="inline">code</code> returns HTTP 400; an unknown code returns HTTP 404.</div>
   </div>
 </section>
 
@@ -223,10 +226,14 @@ curl -s http://filefly.home/version</pre>
   echo
 done</pre>
     <p class="label expect">Expect</p>
-    <div class="expect-box">Each call returns HTTP 200 with an <code class="inline">Invite</code> object: an 8-char <code class="inline">code</code>,
-    the requested <code class="inline">role</code>, the given <code class="inline">base_path</code>, <code class="inline">used_count:0</code>,
-    and the role's default <code class="inline">permissions</code> (admin=upload/mkdir/rename/delete/invite, user=upload/mkdir/rename,
-    service=upload, guest=upload). <code class="inline">GET /auth/invites</code> then lists all created invites.</div>
+    <div class="expect-box">Each call returns HTTP 200 with an <code class="inline">InviteCreateResponse</code>:
+    a fresh <code class="inline">code</code> (~12 chars) plus <code class="inline">url</code> = <code class="inline">filefly://invite?code=&lt;code&gt;</code>,
+    the requested <code class="inline">role</code>, the given <code class="inline">base_path</code>, and the role's default
+    <code class="inline">permissions</code> (admin=upload/mkdir/rename/delete/invite, user=upload/mkdir/rename,
+    service=upload, guest=upload). The plaintext <code class="inline">code</code> is returned <strong>only here, once</strong>.
+    <code class="inline">GET /auth/invites</code> lists all invites <strong>without</strong> the plaintext code — each entry shows an
+    <code class="inline">id</code>, a 2-char <code class="inline">code_hint</code>, and metadata only. In the DB
+    (<code class="inline">SELECT code_hash FROM invites</code>) codes appear only as 64-char SHA-256 hashes.</div>
   </div>
 </section>
 

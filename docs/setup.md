@@ -155,7 +155,7 @@ Reload behaviour: Traefik watches the Docker socket and picks up label changes a
 
 ## 6. Production `.env`
 
-Copy the example and set real values. **Never leave the defaults in production** — the default `SECRET_KEY` and `ADMIN_INVITE_CODE` are public knowledge and would let anyone mint admin tokens.
+Copy the example and set real values. **Never leave the default `SECRET_KEY` in production** — it is public knowledge and would let anyone forge admin tokens. The server **refuses to start** while `SECRET_KEY` is unset or still the default.
 
 ```bash
 cp .env.example .env
@@ -165,12 +165,9 @@ cp .env.example .env
 # Storage root inside the container (matches the /data volume mount)
 STORAGE_ROOT=/data
 
-# JWT signing key — generate a fresh one:  openssl rand -hex 32
+# JWT signing key — REQUIRED. Generate a fresh one:  openssl rand -hex 32
+# The server will not start with the default/empty value.
 SECRET_KEY=<output of: openssl rand -hex 32>
-
-# One-time bootstrap invite for the first admin — change from the default,
-# redeem it once (step 7), then you can rely on created invites.
-ADMIN_INVITE_CODE=<a long random string you keep private>
 
 # Token lifetime in hours (default 7 days)
 JWT_EXPIRE_HOURS=168
@@ -188,25 +185,37 @@ Generate the secret:
 openssl rand -hex 32
 ```
 
-> **Security warning.** Treat `SECRET_KEY` and `ADMIN_INVITE_CODE` like passwords. Do not commit `.env`. Anyone who knows `ADMIN_INVITE_CODE` can obtain an admin JWT and manage all invites and files. The admin bootstrap code stays valid as long as it is set — consider rotating it to a fresh random value after you have created your real invites.
+> **Security note.** There is no admin password in `.env`. On the **first** start (empty database) the server generates a single, random, one-time admin invite and prints it **once** to the logs (see step 7). It expires after 24 hours and is consumed on first use. Invite codes are stored only as SHA-256 hashes — never in clear text. Treat `SECRET_KEY` like a password and never commit `.env`.
 
 ---
 
 ## 7. First start & admin bootstrap
 
-Start the stack and redeem the admin invite.
+Start the stack and grab the one-time admin invite from the logs.
 
 ```bash
 docker compose up -d
-docker compose logs -f filefly-server   # watch it start; Ctrl-C to stop tailing
+docker compose logs filefly-server   # the bootstrap invite is printed once, near the top
 ```
 
-Redeem the bootstrap code to get an admin JWT (works via IP or, once DNS is set, the hostname):
+On the **first** start you will see a boxed message like:
+
+```
+====================================================================
+ FileFly bootstrap admin invite (shown ONCE, valid 24h, single use):
+
+     xB3kf9_Qz1...             <-- your code
+
+ Redeem it in the FileFly app now. It is not recoverable.
+====================================================================
+```
+
+Copy that code. Redeem it to get an admin JWT (works via IP or, once DNS is set, the hostname):
 
 ```bash
 curl -s -X POST http://filefly.home/auth/invite/validate \
   -H "Content-Type: application/json" \
-  -d '{"code":"<your ADMIN_INVITE_CODE>"}'
+  -d '{"code":"<the bootstrap code from the logs>"}'
 ```
 
 Response contains `access_token` (the JWT), plus `role`, `base_path`, and `permissions`. Save the token:

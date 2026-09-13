@@ -39,7 +39,7 @@ cd filefly-server
 
 # Configure
 cp .env.example .env
-# Edit .env — at minimum set SECRET_KEY and ADMIN_INVITE_CODE (see below)
+# Edit .env — set a strong SECRET_KEY (openssl rand -hex 32). Required.
 
 # Start
 docker compose up -d
@@ -47,7 +47,7 @@ docker compose up -d
 
 The server listens on port `8000`. From any device on your LAN, open `http://<host-ip>:8000/docs` for the interactive OpenAPI UI, or `http://<host-ip>:8000/health` to check it is alive.
 
-> **First run:** redeem the `ADMIN_INVITE_CODE` from your `.env` (via `POST /auth/invite/validate`) to receive an admin JWT, then create further invites for users, service accounts, and guests.
+> **First run:** on the first start (empty database) the server prints a one-time admin invite code to the logs (`docker compose logs filefly-server`). Redeem it via `POST /auth/invite/validate` to receive an admin JWT, then create further invites for users, service accounts, and guests. The code is single-use and expires after 24 hours.
 
 For a full deployment walkthrough — reverse proxy (Traefik), local DNS (Pi-hole), storage mounts, production `.env`, and updates — see **[docs/setup.md](docs/setup.md)**.
 
@@ -101,8 +101,7 @@ Set via environment variables or a `.env` file:
 | Variable | Default | Description |
 |---|---|---|
 | `STORAGE_ROOT` | `/data` | Root directory for all uploads |
-| `SECRET_KEY` | `change-me-in-production` | JWT signing key — **change this in production** |
-| `ADMIN_INVITE_CODE` | `admin-setup` | Bootstrap invite for the first admin — **change this** |
+| `SECRET_KEY` | _(none)_ | JWT signing key — **required**; the server refuses to start with the default/empty value. Generate: `openssl rand -hex 32` |
 | `JWT_EXPIRE_HOURS` | `168` | Token lifetime in hours (7 days) |
 | `MAX_CHUNK_SIZE_MB` | `10` | Maximum size of a single upload chunk |
 | `ALLOWED_ORIGINS` | `*` | CORS origins (comma-separated) |
