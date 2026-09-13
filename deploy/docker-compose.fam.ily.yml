@@ -1,0 +1,42 @@
+# FileFly Server — HomeNexus compose-image-app stack template.
+# Rendered by hubctl into /srv/hubdata/stacks/filefly/docker-compose.yml at bootstrap.
+# Test phase: plain http via IP:port (Traefik bypassed). The Traefik/fam.ily block
+# at the bottom is commented out — enable it once you want https://filefly.fam.ily.
+services:
+  filefly:
+    image: ghcr.io/labushuya/filefly-server:latest
+    restart: unless-stopped
+    env_file:
+      - /srv/hubdata/state/filefly/.env
+    environment:
+      - STORAGE_ROOT=/data
+      - DB_PATH=/app/data/filefly.db
+    volumes:
+      # Uploads land on the existing media HDD.
+      - /srv/hubdata/media/filefly:/data
+      # SQLite DB lives in a state DIRECTORY (not a file bind) — robust, no
+      # pre-create needed, avoids Docker turning a missing file into a folder.
+      - /srv/hubdata/state/filefly/data:/app/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else sys.exit(1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+# --- Later: Traefik + fam.ily integration (replaces the `ports:` block above) ---
+# Add to the `filefly` service and remove `ports:`:
+#   labels:
+#     - "traefik.enable=true"
+#     - "traefik.docker.network=proxy"
+#     - "traefik.http.routers.filefly.rule=Host(`filefly.fam.ily`)"
+#     - "traefik.http.routers.filefly.entrypoints=websecure"
+#     - "traefik.http.routers.filefly.tls=true"
+#     - "traefik.http.services.filefly.loadbalancer.server.port=8000"
+#   networks:
+#     - proxy
+# networks:
+#   proxy:
+#     external: true

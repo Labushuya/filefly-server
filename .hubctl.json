@@ -1,0 +1,20 @@
+{
+  "name": "filefly",
+  "kind": "compose-image-app",
+  "capabilities": {
+    "bootstrap": true,
+    "deployComposeTemplate": true,
+    "deployFromDev": false
+  },
+  "image": {
+    "ref": "ghcr.io/labushuya/filefly-server:latest",
+    "requiredArchitecture": "arm64/linux"
+  },
+  "paths": {
+    "composeTemplate": "deploy/docker-compose.fam.ily.yml",
+    "envExample": ".env.example"
+  },
+  "network": {
+    "health": ["http://192.168.178.123:8000/health"]
+  }
+}
