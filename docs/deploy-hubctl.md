@@ -18,26 +18,29 @@ compose template, so hubctl discovers and bootstraps it generically.
 
 ---
 
-## Step 0 — Publish the container image (one-time per release)
+## Step 0 — Container image (already published)
 
-FileFly's image must exist on GHCR before the Pi can pull it. A git tag triggers
-the release workflow, which builds a **multi-arch (amd64 + arm64)** image — arm64
-is required for the Pi.
+FileFly's image is already built and published to GHCR as
+`ghcr.io/labushuya/filefly-server:v0.1.4` (and `:latest`), multi-arch
+(amd64 + arm64 — arm64 is what the Pi needs). **You do not need to tag anything.**
 
-```bash
-# in the repo, on your DEV machine
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-Watch the "Release" workflow to green, then verify arm64 is present:
+To publish a *future* release, bump the version and push a new tag:
 
 ```bash
-docker manifest inspect ghcr.io/labushuya/filefly-server:v0.1.0 | grep -i arch
+# only for a NEW release, on your DEV machine
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
-Make the GHCR package **public** (Packages → filefly-server → Package settings →
-Change visibility → Public) so the Pi pulls without a login.
+The "Release" workflow then builds and pushes the new multi-arch image.
+
+> Note: tags `v0.1.0`–`v0.1.3` were failed build attempts and have no image.
+> `v0.1.4` is the first good one. If you created a local `v0.1.0` tag by hand,
+> drop it with `git tag -d v0.1.0`.
+
+**One thing you must still do:** make the GHCR package **public** so the Pi pulls
+without a login — GitHub → your profile → Packages → `filefly-server` →
+Package settings → Change visibility → **Public**.
 
 ---
 
