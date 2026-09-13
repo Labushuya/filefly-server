@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileFly Server — Test Manifest</title>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --panel: #17171b;
+    --panel-2: #1f1f25;
+    --border: #2c2c34;
+    --text: #e8e6e0;
+    --muted: #9a978e;
+    --orange: #ff8c1a;
+    --yellow: #ffd23f;
+    --green: #3ecf7e;
+    --red: #ff5c5c;
+    --amber: #ffb02e;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    padding: 0 0 4rem;
+  }
+  header {
+    background: linear-gradient(135deg, #1a1206 0%, #0d0d0f 60%);
+    border-bottom: 2px solid var(--orange);
+    padding: 2.2rem 1.5rem 1.8rem;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+  header .wrap { padding: 0 0; }
+  h1 {
+    margin: 0 0 .3rem;
+    font-size: 1.9rem;
+    letter-spacing: -0.02em;
+  }
+  h1 .fly { color: var(--orange); }
+  h1 .server { color: var(--yellow); }
+  .subtitle { color: var(--muted); margin: 0; font-size: .98rem; }
+  .meta {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.4rem;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+  .meta code { color: var(--yellow); }
+
+  .legend {
+    margin: 1.6rem auto 0;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.2rem;
+    align-items: center;
+    font-size: .85rem;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .18rem .6rem; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel-2);
+  }
+  .dot { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; }
+  .dot.pass { background: var(--green); }
+  .dot.fail { background: var(--red); }
+  .dot.open { background: var(--amber); }
+
+  .summary {
+    margin: 1.4rem auto 0; max-width: 960px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: .9rem 1.2rem; font-size: .88rem; color: var(--muted);
+  }
+  .summary strong { color: var(--text); }
+
+  section.block {
+    max-width: 960px; margin: 1.4rem auto 0;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .block-head {
+    display: flex; align-items: center; gap: .8rem;
+    padding: 1rem 1.3rem; background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .gid {
+    font-family: var(--mono); font-weight: 700; font-size: .85rem;
+    color: #0d0d0f; background: var(--orange);
+    padding: .2rem .55rem; border-radius: 6px; letter-spacing: .02em;
+  }
+  .block-title { font-size: 1.08rem; font-weight: 650; margin: 0; flex: 1; }
+  .status-select {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: .3rem .5rem; font-size: .82rem; font-family: var(--mono);
+  }
+  .block-body { padding: 1.1rem 1.3rem 1.3rem; }
+  .label {
+    text-transform: uppercase; letter-spacing: .08em; font-size: .72rem;
+    color: var(--orange); font-weight: 700; margin: 0 0 .5rem;
+  }
+  .label.expect { color: var(--yellow); margin-top: 1.1rem; }
+  ol.steps { margin: 0; padding-left: 1.3rem; }
+  ol.steps li { margin: .28rem 0; }
+  .expect-box {
+    background: var(--panel-2); border-left: 3px solid var(--yellow);
+    padding: .7rem .9rem; border-radius: 0 8px 8px 0; font-size: .92rem;
+  }
+  pre {
+    background: #08080a; border: 1px solid var(--border);
+    border-radius: 8px; padding: .85rem 1rem; overflow-x: auto;
+    font-family: var(--mono); font-size: .82rem; color: #d8f0d8;
+    margin: .6rem 0;
+  }
+  pre .c { color: var(--muted); }
+  code.inline {
+    font-family: var(--mono); background: var(--panel-2);
+    padding: .1rem .35rem; border-radius: 4px; font-size: .85em; color: var(--yellow);
+  }
+  footer {
+    max-width: 960px; margin: 2.2rem auto 0; padding: 0 1.5rem;
+    color: var(--muted); font-size: .8rem; text-align: center;
+  }
+  a { color: var(--orange); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1><span class="fly">FileFly</span> <span class="server">Server</span> — Test Manifest</h1>
+    <p class="subtitle">Manual QA checklist for the self-hosted, invite-based file-receiving server.</p>
+    <div class="meta">
+      <span>Base URL: <code>http://filefly.home</code> (or <code>http://&lt;host&gt;:8000</code>)</span>
+      <span>Auth: <code>Authorization: Bearer &lt;jwt&gt;</code></span>
+      <span>Version: <code>/version</code></span>
+    </div>
+  </div>
+</header>
+
+<div class="legend">
+  <span class="pill"><span class="dot pass"></span> Pass</span>
+  <span class="pill"><span class="dot fail"></span> Fail</span>
+  <span class="pill"><span class="dot open"></span> Open</span>
+  <span style="color:var(--muted)">Set the status per block using the dropdown; this is a static QA sheet.</span>
+</div>
+
+<div class="summary">
+  <strong>Scope:</strong> covers health/version, invite lifecycle, chunked upload, conflict strategies,
+  permission &amp; path-traversal enforcement, guest expiry/max-uses, role restrictions, auth failures, and CORS.
+  Run against a freshly started instance with a known <code>ADMIN_INVITE_CODE</code>. Replace <code>$TOKEN</code>
+  with the JWT returned by the relevant invite.
+</div>
+
+<!-- G01 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G01</span>
+    <p class="block-title">Health &amp; version endpoints reachable</p>
+    <select class="status-select" aria-label="G01 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Start the server (Docker or <code class="inline">uvicorn app.main:app</code>).</li>
+      <li>Call the two public endpoints — no auth header.</li>
+    </ol>
+<pre><span class="c"># no token needed</span>
+curl -s http://filefly.home/health
+curl -s http://filefly.home/version</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box"><code class="inline">/health</code> returns <code class="inline">{"status":"ok"}</code> with HTTP 200.
+    <code class="inline">/version</code> returns <code class="inline">{"version":"0.1.0"}</code> (or the installed version). Swagger UI loads at <code class="inline">/docs</code>.</div>
+  </div>
+</section>
+
+<!-- G02 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G02</span>
+    <p class="block-title">Redeem admin invite → receive JWT</p>
+    <select class="status-select" aria-label="G02 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Use the configured <code class="inline">ADMIN_INVITE_CODE</code>.</li>
+      <li>POST it to the validate endpoint.</li>
+    </ol>
+<pre>curl -s -X POST http://filefly.home/auth/invite/validate \
+  -H "Content-Type: application/json" \
+  -d '{"code":"&lt;ADMIN_INVITE_CODE&gt;"}'</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">HTTP 200 with a JSON body containing <code class="inline">access_token</code>,
+    <code class="inline">token_type:"bearer"</code>, <code class="inline">role:"admin"</code>, <code class="inline">base_path:""</code>,
+    and <code class="inline">permissions</code> = <code class="inline">["upload","mkdir","rename","delete","invite"]</code>.
+    An empty or missing <code class="inline">code</code> returns HTTP 400.</div>
+  </div>
+</section>
+
+<!-- G03 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G03</span>
+    <p class="block-title">Create an invite for each of the 4 roles (as admin)</p>
+    <select class="status-select" aria-label="G03 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Set <code class="inline">$TOKEN</code> to the admin JWT from G02.</li>
+      <li>Create one invite per role; note the generated <code class="inline">code</code> each time.</li>
+    </ol>
+<pre>for R in admin user service guest; do
+  curl -s -X POST http://filefly.home/auth/invite \
+    -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d "{\"role\":\"$R\",\"base_path\":\"$R-space\"}"
+  echo
+done</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">Each call returns HTTP 200 with an <code class="inline">Invite</code> object: an 8-char <code class="inline">code</code>,
+    the requested <code class="inline">role</code>, the given <code class="inline">base_path</code>, <code class="inline">used_count:0</code>,
+    and the role's default <code class="inline">permissions</code> (admin=upload/mkdir/rename/delete/invite, user=upload/mkdir/rename,
+    service=upload, guest=upload). <code class="inline">GET /auth/invites</code> then lists all created invites.</div>
+  </div>
+</section>
+
+<!-- G04 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G04</span>
+    <p class="block-title">Chunked upload — init → chunk → complete (small &amp; large file)</p>
+    <select class="status-select" aria-label="G04 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Redeem a <code class="inline">user</code> invite (from G03) to get a user <code class="inline">$TOKEN</code>.</li>
+      <li>Small file: one chunk. Init with <code class="inline">chunk_count:1</code>, send chunk index 0, complete.</li>
+      <li>Large file: split into N chunks (each ≤ <code class="inline">MAX_CHUNK_SIZE_MB</code>). Init with <code class="inline">chunk_count:N</code>, send all N chunks, complete.</li>
+    </ol>
+<pre><span class="c"># init</span>
+UID=$(curl -s -X POST http://filefly.home/files/upload/init \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"filename":"note.txt","target_path":"","total_size":5,"chunk_count":1,"conflict_strategy":"rename"}' \
+  | python -c 'import sys,json;print(json.load(sys.stdin)["upload_id"])')
+
+<span class="c"># chunk 0 (multipart form: upload_id, chunk_index, chunk file)</span>
+echo -n "hello" > c0.bin
+curl -s -X POST http://filefly.home/files/upload/chunk \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "upload_id=$UID" -F "chunk_index=0" -F "chunk=@c0.bin"
+
+<span class="c"># complete</span>
+curl -s -X POST http://filefly.home/files/upload/complete \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"upload_id\":\"$UID\"}"</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">Init returns <code class="inline">{"upload_id": "..."}</code>. Each chunk returns
+    <code class="inline">{"upload_id","chunk_index","received"}</code> with <code class="inline">received</code> counting up.
+    Complete returns <code class="inline">{"status":"complete","path":"..."}</code> and the reassembled file exists under
+    <code class="inline">STORAGE_ROOT</code>. Completing before all chunks arrive returns HTTP 400 with
+    <code class="inline">"Missing chunks: [...]"</code>. The staging dir <code class="inline">.filefly_tmp/&lt;upload_id&gt;</code> is removed afterward.</div>
+  </div>
+</section>
+
+<!-- G05 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G05</span>
+    <p class="block-title">Conflict handling — overwrite / rename / skip</p>
+    <select class="status-select" aria-label="G05 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Upload <code class="inline">dup.txt</code> once (any strategy) so it exists.</li>
+      <li>Re-upload <code class="inline">dup.txt</code> three times, once with each <code class="inline">conflict_strategy</code>: <code class="inline">skip</code>, <code class="inline">rename</code>, <code class="inline">overwrite</code>.</li>
+      <li>List the directory after each to observe the result.</li>
+    </ol>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">
+      <b>skip</b> → complete returns <code class="inline">{"status":"skipped","path":...}</code>; original untouched, no new file.<br>
+      <b>rename</b> → a new file appears with an auto suffix (<code class="inline">dup_1.txt</code>, then <code class="inline">dup_2.txt</code>, …); original untouched.<br>
+      <b>overwrite</b> → the existing <code class="inline">dup.txt</code> content is replaced; no extra file.
+    </div>
+  </div>
+</section>
+
+<!-- G06 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G06</span>
+    <p class="block-title">Permission enforcement — user cannot write outside base_path</p>
+    <select class="status-select" aria-label="G06 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Create a <code class="inline">user</code> invite with <code class="inline">base_path:"userspace"</code> and redeem it.</li>
+      <li>Attempt an upload/mkdir with a <code class="inline">target_path</code>/<code class="inline">path</code> that tries to reach a sibling or parent directory (e.g. <code class="inline">"../adminspace"</code>).</li>
+    </ol>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">The resolved path is confined to <code class="inline">STORAGE_ROOT/userspace</code>. Any target that resolves outside it
+    is rejected with HTTP 403 <code class="inline">"Path traversal not allowed"</code>. A normal relative path inside the base works.</div>
+  </div>
+</section>
+
+<!-- G07 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G07</span>
+    <p class="block-title">Path-traversal protection — <code class="inline">../</code> is blocked</p>
+    <select class="status-select" aria-label="G07 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>With any valid token, call <code class="inline">/files/list</code> with a traversing path.</li>
+      <li>Repeat for <code class="inline">upload/init</code> and <code class="inline">mkdir</code> targets.</li>
+    </ol>
+<pre>curl -s "http://filefly.home/files/list?path=../../etc" \
+  -H "Authorization: Bearer $TOKEN"</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">Every request whose resolved path escapes the allowed base returns HTTP 403
+    <code class="inline">"Path traversal not allowed"</code>. No file outside <code class="inline">STORAGE_ROOT</code> (or the invite base) is ever read, written, or listed.</div>
+  </div>
+</section>
+
+<!-- G08 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G08</span>
+    <p class="block-title">Guest invite with expiry + max_uses</p>
+    <select class="status-select" aria-label="G08 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>As admin, create a guest invite with a near-future <code class="inline">expires_at</code> and <code class="inline">max_uses:2</code>.</li>
+      <li>Redeem it twice (each redeem increments <code class="inline">used_count</code>).</li>
+      <li>Redeem a third time.</li>
+      <li>Separately, create a guest invite that has already expired and try to redeem it.</li>
+    </ol>
+<pre>curl -s -X POST http://filefly.home/auth/invite \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"role":"guest","base_path":"drop","max_uses":2,"expires_at":"2026-12-31T23:59:59Z"}'</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">First two redemptions succeed (200 + JWT). The third returns HTTP 403 <code class="inline">"Invite exhausted"</code>.
+    An expired invite returns HTTP 403 <code class="inline">"Invite expired"</code>. <code class="inline">max_uses:0</code> means unlimited.</div>
+  </div>
+</section>
+
+<!-- G09 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G09</span>
+    <p class="block-title">Service account — upload only, no mkdir/rename/delete</p>
+    <select class="status-select" aria-label="G09 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Redeem a <code class="inline">service</code> invite (permissions = <code class="inline">["upload"]</code> only).</li>
+      <li>Upload a file (init/chunk/complete) — should work.</li>
+      <li>Attempt <code class="inline">/files/mkdir</code>, <code class="inline">/files/rename</code>, and <code class="inline">DELETE /files/delete</code>.</li>
+    </ol>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">Upload succeeds. Each of mkdir/rename/delete returns HTTP 403
+    <code class="inline">"Permission 'mkdir'|'rename'|'delete' required"</code>. Listing still works (needs only <code class="inline">upload</code>).</div>
+  </div>
+</section>
+
+<!-- G10 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G10</span>
+    <p class="block-title">Directory operations (mkdir / rename / delete) by role</p>
+    <select class="status-select" aria-label="G10 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>As <code class="inline">user</code> (permissions upload/mkdir/rename): create a dir, rename it, then attempt to delete it.</li>
+      <li>As <code class="inline">admin</code> (all permissions): create, rename, and delete a dir/file.</li>
+    </ol>
+<pre><span class="c"># user: mkdir</span>
+curl -s -X POST http://filefly.home/files/mkdir \
+  -H "Authorization: Bearer $USER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"path":"","name":"reports"}'
+
+<span class="c"># user: rename</span>
+curl -s -X POST http://filefly.home/files/rename \
+  -H "Authorization: Bearer $USER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"path":"reports","new_name":"reports2"}'
+
+<span class="c"># user: delete  -> should be forbidden</span>
+curl -s -X DELETE http://filefly.home/files/delete \
+  -H "Authorization: Bearer $USER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"path":"reports2"}'</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">User: mkdir returns <code class="inline">{"created":...}</code>, rename returns <code class="inline">{"renamed":...}</code>,
+    delete returns HTTP 403 <code class="inline">"Permission 'delete' required"</code>. Admin: all three succeed, deleting a directory removes it recursively.</div>
+  </div>
+</section>
+
+<!-- G11 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G11</span>
+    <p class="block-title">Auth — expired / invalid JWT rejected with 401</p>
+    <select class="status-select" aria-label="G11 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>Call a protected endpoint with a garbage token.</li>
+      <li>Call it with a token signed by a different <code class="inline">SECRET_KEY</code> (or an expired one — set <code class="inline">JWT_EXPIRE_HOURS</code> very low and wait).</li>
+      <li>Call it with no <code class="inline">Authorization</code> header.</li>
+    </ol>
+<pre>curl -s -o /dev/null -w "%{http_code}\n" \
+  http://filefly.home/files/list \
+  -H "Authorization: Bearer not-a-real-token"</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">Invalid or expired tokens return HTTP 401 <code class="inline">"Invalid token"</code> (JWT decode failure covers both bad signature and expiry).
+    A missing bearer header returns HTTP 403 from the security dependency. Changing <code class="inline">SECRET_KEY</code> invalidates all previously issued tokens.</div>
+  </div>
+</section>
+
+<!-- G12 -->
+<section class="block">
+  <div class="block-head">
+    <span class="gid">G12</span>
+    <p class="block-title">LAN-only / CORS behaviour</p>
+    <select class="status-select" aria-label="G12 status"><option>Open</option><option>Pass</option><option>Fail</option></select>
+  </div>
+  <div class="block-body">
+    <p class="label">Steps</p>
+    <ol class="steps">
+      <li>With default <code class="inline">ALLOWED_ORIGINS=*</code>, send a request with an <code class="inline">Origin</code> header and inspect the CORS response headers.</li>
+      <li>Restart with <code class="inline">ALLOWED_ORIGINS=http://filefly.home</code> and repeat with a disallowed origin.</li>
+      <li>Confirm the server is only reachable on the LAN (not published to the public internet by the reverse proxy).</li>
+    </ol>
+<pre>curl -s -D - -o /dev/null http://filefly.home/health \
+  -H "Origin: http://filefly.home"</pre>
+    <p class="label expect">Expect</p>
+    <div class="expect-box">With <code class="inline">*</code>, the response includes permissive
+    <code class="inline">Access-Control-Allow-Origin</code>. With a restricted list, only listed origins are reflected;
+    others are not granted CORS access. There is no public authentication path — access requires an invite code, and the
+    service should only be exposed on the trusted LAN (verify no public port-forward / WAN route reaches it).</div>
+  </div>
+</section>
+
+<footer>
+  FileFly Server — manual QA manifest. Set each block to Pass / Fail / Open as you run it.
+  See <a href="setup.md">setup.md</a> for deployment and <a href="../README.md">README</a> for the API reference.
+</footer>
+</body>
+</html>
